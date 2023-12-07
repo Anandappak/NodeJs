@@ -1,0 +1,80 @@
+const mysql = require('mysql2/promise');
+const { Kafka } = require('kafkajs');
+
+// Database configuration
+const dbConfig = {
+  host: 'your_database_host',
+  user: 'your_database_user',
+  password: 'your_database_password',
+  database: 'your_database_name',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+};
+
+// Kafka configuration
+const kafka = new Kafka({
+  clientId: 'my-app',
+  brokers: ['your_kafka_broker'],
+});
+
+const run = async () => {
+  try {
+    // Connect to MySQL
+    const pool = await mysql.createPool(dbConfig);
+
+    // Create a Kafka consumer
+    const consumer = kafka.consumer({ groupId: 'my-group' });
+
+    // Connect to Kafka
+    await consumer.connect();
+
+    // Subscribe to the Kafka topic
+    await consumer.subscribe({ topic: 'your_kafka_topic', fromBeginning: true });
+
+    // Consume messages from Kafka
+    await consumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        const kafkaData = JSON.parse(message.value.toString());
+
+        try {
+          // Start a transaction
+          const connection = await pool.getConnection();
+          await connection.beginTransaction();
+
+          // Insert data into the first table (e.g., A)
+          const dataA = kafkaData.dataA;
+          const [resultA] = await connection.execute('INSERT INTO table_a (field_a) VALUES (?)', [dataA.field_a]);
+          const idA = resultA.insertId;
+
+          // Insert data into the second table (e.g., B - one-to-many with A)
+          const dataBList = kafkaData.dataBList || [];
+          for (const dataB of dataBList) {
+            await connection.execute('INSERT INTO table_b (id_a, field_b) VALUES (?, ?)', [idA, dataB.field_b]);
+          }
+
+          // Insert data into the third table (e.g., C - one-to-one with A)
+          const dataC = kafkaData.dataC;
+          await connection.execute('INSERT INTO table_c (id_a, field_c) VALUES (?, ?)', [idA, dataC.field_c]);
+
+          // Commit the transaction
+          await connection.commit();
+
+          console.log('Data inserted into tables successfully:', kafkaData);
+        } catch (error) {
+          // Rollback the transaction in case of an error
+          await connection.rollback();
+          console.error('Error inserting data into tables:', error);
+        } finally {
+          // Release the connection
+          connection.release();
+        }
+      },
+    });
+  } catch (error) {
+    console.error('Error connecting to the database or Kafka:', error);
+  }
+};
+
+// Run the script
+run();
