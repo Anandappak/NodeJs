@@ -1,0 +1,55 @@
+const { Kafka } = require('kafkajs');
+const mysql = require('mysql2/promise');
+
+// Kafka configuration
+const kafka = new Kafka({
+  clientId: 'my-app',
+  brokers: ['your_kafka_broker'],
+});
+
+// Database configuration
+const dbConfig = {
+  host: 'your_database_host',
+  user: 'your_database_user',
+  password: 'your_database_password',
+  database: 'your_database_name',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+};
+
+// Create a Kafka consumer
+const consumer = kafka.consumer({ groupId: 'my-group' });
+
+const run = async () => {
+  // Connect to Kafka and MySQL
+  await Promise.all([
+    consumer.connect(),
+    mysql.createPool(dbConfig),
+  ]);
+
+  // Subscribe to the Kafka topic
+  await consumer.subscribe({ topic: 'your_kafka_topic', fromBeginning: true });
+
+  // Consume messages from Kafka
+  await consumer.run({
+    eachMessage: async ({ topic, partition, message }) => {
+      const userData = JSON.parse(message.value.toString());
+
+      // Insert user
+      const [userResult] = await pool.execute('INSERT INTO users (username) VALUES (?)', [userData.username]);
+      const userId = userResult.insertId;
+
+      // Insert posts for the user
+      const posts = userData.posts || [];
+      for (const post of posts) {
+        await pool.execute('INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)', [userId, post.title, post.content]);
+      }
+
+      console.log('Data inserted into database:', userData);
+    },
+  });
+};
+
+// Run the consumer
+run().catch(console.error);
