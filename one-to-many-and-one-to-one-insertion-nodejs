@@ -1,0 +1,57 @@
+const mysql = require('mysql2/promise');
+
+// Database configuration
+const dbConfig = {
+  host: 'your_database_host',
+  user: 'your_database_user',
+  password: 'your_database_password',
+  database: 'your_database_name',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+};
+
+const run = async () => {
+  try {
+    // Connect to MySQL
+    const pool = await mysql.createPool(dbConfig);
+
+    // Start a transaction
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      // Insert data into the first table (e.g., A)
+      const dataA = { fieldA: 'valueA' };
+      const [resultA] = await connection.execute('INSERT INTO table_a (field_a) VALUES (?)', [dataA.fieldA]);
+      const idA = resultA.insertId;
+
+      // Insert data into the second table (e.g., B - one-to-many with A)
+      const dataB1 = { fieldB: 'valueB1' };
+      const dataB2 = { fieldB: 'valueB2' };
+      await connection.execute('INSERT INTO table_b (id_a, field_b) VALUES (?, ?)', [idA, dataB1.fieldB]);
+      await connection.execute('INSERT INTO table_b (id_a, field_b) VALUES (?, ?)', [idA, dataB2.fieldB]);
+
+      // Insert data into the third table (e.g., C - one-to-one with A)
+      const dataC = { fieldC: 'valueC' };
+      await connection.execute('INSERT INTO table_c (id_a, field_c) VALUES (?, ?)', [idA, dataC.fieldC]);
+
+      // Commit the transaction
+      await connection.commit();
+
+      console.log('Data inserted into tables successfully');
+    } catch (error) {
+      // Rollback the transaction in case of an error
+      await connection.rollback();
+      console.error('Error inserting data into tables:', error);
+    } finally {
+      // Release the connection
+      connection.release();
+    }
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+  }
+};
+
+// Run the script
+run();
