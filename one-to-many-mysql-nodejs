@@ -1,0 +1,52 @@
+const mysql = require('mysql2');
+
+// Create a connection pool
+const pool = mysql.createPool({
+  host: 'your_database_host',
+  user: 'your_database_user',
+  password: 'your_database_password',
+  database: 'your_database_name',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
+
+// Insert a user and their posts
+const insertUserAndPosts = async () => {
+  try {
+    const connection = await pool.promise().getConnection();
+
+    // Start a transaction
+    await connection.beginTransaction();
+
+    // Insert user
+    const [userResult] = await connection.execute('INSERT INTO users (username) VALUES (?)', ['john_doe']);
+    const userId = userResult.insertId;
+
+    // Insert posts for the user
+    const posts = [
+      { title: 'Post 1', content: 'Content of post 1' },
+      { title: 'Post 2', content: 'Content of post 2' },
+      // Add more posts as needed
+    ];
+
+    for (const post of posts) {
+      await connection.execute('INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)', [userId, post.title, post.content]);
+    }
+
+    // Commit the transaction
+    await connection.commit();
+
+    console.log('User and posts inserted successfully');
+
+    // Release the connection
+    connection.release();
+  } catch (error) {
+    // Rollback the transaction in case of an error
+    await connection.rollback();
+    console.error('Error inserting user and posts:', error);
+  }
+};
+
+// Call the function
+insertUserAndPosts();
