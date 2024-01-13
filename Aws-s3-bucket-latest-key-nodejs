@@ -32,3 +32,36 @@ s3.listObjectsV2(params, (err, data) => {
     console.log('Latest keys:', latestKeys);
   }
 });
+
+
+descemding order
+const AWS = require('aws-sdk');
+
+// Configure AWS credentials and region
+AWS.config.update({
+  accessKeyId: 'YOUR_ACCESS_KEY',
+  secretAccessKey: 'YOUR_SECRET_KEY',
+  region: 'YOUR_REGION',
+});
+
+// Create an S3 object
+const s3 = new AWS.S3();
+
+// Specify the S3 bucket name
+const bucketName = 'YOUR_BUCKET_NAME';
+
+// Fetch the list of objects in the bucket
+s3.listObjects({ Bucket: bucketName }, (err, data) => {
+  if (err) {
+    console.error('Error listing objects:', err);
+  } else {
+    // Sort objects by Last Modified timestamp in descending order
+    const sortedObjects = data.Contents.sort((a, b) => b.LastModified - a.LastModified);
+
+    // Display the sorted keys
+    sortedObjects.forEach(object => {
+      console.log(object.Key);
+    });
+  }
+});
+
