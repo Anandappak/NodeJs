@@ -1,0 +1,34 @@
+const AWS = require('aws-sdk');
+
+// Set your AWS credentials and region
+AWS.config.update({
+  accessKeyId: 'YOUR_ACCESS_KEY_ID',
+  secretAccessKey: 'YOUR_SECRET_ACCESS_KEY',
+  region: 'YOUR_REGION',
+});
+
+// Create an S3 object
+const s3 = new AWS.S3();
+
+// Specify the bucket name
+const bucketName = 'your-bucket-name';
+
+// Set up the parameters for listing objects in the bucket
+const params = {
+  Bucket: bucketName,
+};
+
+// List objects in the bucket
+s3.listObjectsV2(params, (err, data) => {
+  if (err) {
+    console.error('Error listing objects:', err);
+  } else {
+    // Sort the objects by the last modified timestamp in descending order
+    const sortedObjects = data.Contents.sort((a, b) => b.LastModified - a.LastModified);
+
+    // Get the latest keys
+    const latestKeys = sortedObjects.map(object => object.Key);
+
+    console.log('Latest keys:', latestKeys);
+  }
+});
