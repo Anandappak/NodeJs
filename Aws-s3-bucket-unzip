@@ -1,0 +1,40 @@
+const AWS = require('aws-sdk');
+const zlib = require('zlib');
+const { Readable } = require('stream');
+
+// AWS configuration
+const s3 = new AWS.S3({
+  accessKeyId: 'YOUR_ACCESS_KEY_ID',
+  secretAccessKey: 'YOUR_SECRET_ACCESS_KEY',
+  region: 'YOUR_REGION',
+});
+
+// S3 bucket and file information
+const bucketName = 'your-s3-bucket';
+const fileName = 'path/to/your/file.gz';
+
+// Create a readable stream from the S3 object
+const s3Stream = s3.getObject({ Bucket: bucketName, Key: fileName }).createReadStream();
+
+// Pipe the S3 stream through the zlib stream to decompress
+const gunzip = zlib.createGunzip();
+const decompressedStream = s3Stream.pipe(gunzip);
+
+// Create a writable stream to collect the decompressed data
+const decompressedData = [];
+
+// Listen for 'data' events to collect the decompressed chunks
+decompressedStream.on('data', (chunk) => {
+  decompressedData.push(chunk);
+});
+
+// Listen for the 'end' event to know when decompression is complete
+decompressedStream.on('end', () => {
+  const decompressedContent = Buffer.concat(decompressedData).toString();
+  console.log('Decompressed content:', decompressedContent);
+});
+
+// Handle errors
+decompressedStream.on('error', (error) => {
+  console.error('Error:', error);
+});
