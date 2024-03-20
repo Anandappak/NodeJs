@@ -1,0 +1,43 @@
+mysql connection and select quary 
+const mysql = require('mysql');
+
+// Create a MySQL connection
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'your_username',
+  password: 'your_password',
+  database: 'your_database'
+});
+
+// Connect to the MySQL server
+connection.connect((err) => {
+  if (err) {
+    console.error('Error connecting to database:', err);
+    return;
+  }
+  console.log('Connected to database');
+  
+  // Query to retrieve filenames where status is 'pending'
+  const query = 'SELECT filename1, filename2 FROM your_table WHERE status = ?';
+  
+  // Execute the query
+  connection.query(query, ['pending'], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return;
+    }
+    
+    // Process the results
+    if (results.length > 0) {
+      console.log('Filenames with status pending:');
+      results.forEach(row => {
+        console.log(row.filename1, row.filename2);
+      });
+    } else {
+      console.log('No filenames found with status pending');
+    }
+
+    // Close the connection
+    connection.end();
+  });
+});
