@@ -1,0 +1,26 @@
+kill process
+var xhr;
+
+$("#myButton").click(function() {
+    xhr = $.ajax({
+        url: "your-url-here",
+        type: "POST",
+        data: {/* your data here */},
+        success: function(response) {
+            // Handle successful response
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            // Handle error
+        }
+    });
+});
+
+// To cancel the request
+$("#cancelButton").click(function() {
+    if (xhr) {
+        xhr.abort();
+        console.log("Request canceled");
+    } else {
+        console.log("No active request to cancel");
+    }
+});
