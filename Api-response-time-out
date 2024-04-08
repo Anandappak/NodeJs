@@ -29,3 +29,37 @@ makeRequest(apiUrl, timeout)
   .catch(error => {
     console.error('Error:', error.message);
   });
+
+
+2nd ex
+const axios = require('axios');
+
+// Function to make POST request with timeout
+async function makePostRequestWithTimeout(url, data, timeout) {
+    try {
+        const response = await axios.post(url, data, { timeout });
+        return response.data;
+    } catch (error) {
+        if (error.code === 'ECONNABORTED') {
+            // Timeout error
+            throw new Error('Request timed out');
+        } else {
+            // Other errors
+            throw error;
+        }
+    }
+}
+
+// Example usage
+const url = 'your_post_api_url';
+const postData = { /* Your POST data */ };
+const timeout = 5000; // 5 seconds timeout
+
+makePostRequestWithTimeout(url, postData, timeout)
+    .then(response => {
+        console.log('Response:', response);
+    })
+    .catch(error => {
+        console.error('Error:', error.message);
+    });
+
