@@ -1,0 +1,33 @@
+const mqtt = require('mqtt');
+const fs = require('fs');
+
+const caFile = fs.readFileSync('path/to/ca.crt');
+const certFile = fs.readFileSync('path/to/client.crt');
+const keyFile = fs.readFileSync('path/to/client.key');
+
+const options = {
+  port: 8883, // or your MQTT broker's port
+  host: 'your.mqtt.broker.com',
+  protocol: 'mqtts', // note the 's' for secure MQTT
+  rejectUnauthorized: true,
+  ca: caFile,
+  cert: certFile,
+  key: keyFile
+};
+
+const client = mqtt.connect(options);
+
+client.on('connect', function () {
+  console.log('Connected');
+  // Do something after connection
+});
+
+client.on('message', function (topic, message) {
+  console.log('Received message:', message.toString());
+});
+
+// Subscribe to topics
+client.subscribe('your/topic');
+
+// Publish a message
+client.publish('your/topic', 'Hello MQTT');
