@@ -11,3 +11,34 @@ let customArray = Object.keys(obj).map(key => {
 
 console.log(customArray); 
 // Output: [{key: 'key1', value: 'value1'}, {key: 'key2', value: 'value2'}, {key: 'key3', value: 'value3'}]
+
+2)Json
+// Sample JSON string
+const jsonArrayString = '[{"id":1,"name":"John","details":{"age":30,"city":"New York"}},{"id":2,"name":"Jane","details":{"age":28,"city":"Los Angeles"}}]';
+
+// Parse JSON string into JavaScript objects
+const jsonArray = JSON.parse(jsonArrayString);
+
+// Function to update a specific object in the array
+function updateObjectInArray(array, id, updatedProperties) {
+  array.forEach(item => {
+    if (item.id === id) {
+      // Update the properties of the object
+      Object.assign(item, updatedProperties);
+    }
+  });
+}
+
+// Update John's details
+updateObjectInArray(jsonArray, 1, {
+  name: "John Doe",
+  details: {
+    age: 31,
+    city: "San Francisco"
+  }
+});
+
+// Convert the updated array back to JSON string if needed
+const updatedJsonArrayString = JSON.stringify(jsonArray);
+
+console.log(updatedJsonArrayString);
