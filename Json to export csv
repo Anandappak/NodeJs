@@ -1,9 +1,13 @@
 export csv file
+
 const jsonData = [
   { name: "John Doe", age: 30, city: "New York" },
   { name: "Jane Smith", age: 25, city: "San Francisco" },
   { name: "Mike Johnson", age: 35, city: "Seattle" }
 ];
+
+const csvData = convertToCSV(jsonData);
+downloadCSV(csvData, 'data.csv');
 
 function convertToCSV(jsonData) {
   const header = Object.keys(jsonData[0]).join(','); // Extract headers
