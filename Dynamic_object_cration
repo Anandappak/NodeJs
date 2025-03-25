@@ -1,0 +1,44 @@
+dynamic object creation
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Object Creation</title>
+</head>
+<body>
+    <button id="createBtn">Create Object</button>
+    <pre id="output"></pre>
+
+    <script>
+        // Array to store all created objects
+        let objectsArray = [];
+        let count = 1; // Counter for dynamic naming
+
+        document.getElementById("createBtn").addEventListener("click", function () {
+            // Generate dynamic properties and values
+            let newObj = {
+                [`a_${count}`]: {
+                    signals: [
+                        { [`param_${count}`]: `value_${count}` }
+                    ]
+                },
+                [`b_${count}`]: {
+                    [`param_${count}`]: []
+                }
+            };
+
+            // Store object in array
+            objectsArray.push(newObj);
+
+            // Increment count for next object
+            count++;
+
+            // Display updated list of objects
+            document.getElementById("output").textContent = JSON.stringify(objectsArray, null, 2);
+            console.log(objectsArray);
+        });
+    </script>
+</body>
+</html>
